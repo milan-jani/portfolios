@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-sage: var(--accent-sage);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-sans);
+  
+  --shadow-editorial: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+  
+  --animate-blob: blob 7s infinite;
+}
+
+@layer base {
+  :root {
+    --background: #F8F7F4;
+    --foreground: #2D2D2D;
+    --card: rgba(255, 255, 255, 0.7);
+    --card-foreground: #2D2D2D;
+    --primary: #2D2D2D;
+    --primary-foreground: #FFFFFF;
+    --secondary: #FFFFFF;
+    --secondary-foreground: #2D2D2D;
+    --muted: rgba(0, 0, 0, 0.03);
+    --muted-foreground: #6B6B6B;
+    --accent: #E0E1F8;
+    --accent-foreground: #2D2D2D;
+    --border: rgba(0, 0, 0, 0.06);
+    
+    --accent-blue: #D6E6F2;
+    --accent-sage: #E2E8CE;
+    
+    --radius: 20px;
+  }
+
+  .dark {
+    --background: #1A1A1A;
+    --foreground: #EAEAEA;
+    --card: rgba(255, 255, 255, 0.05);
+    --card-foreground: #EAEAEA;
+    --primary: #EAEAEA;
+    --primary-foreground: #1A1A1A;
+    --secondary: #2D2D2D;
+    --secondary-foreground: #EAEAEA;
+    --muted: rgba(255, 255, 255, 0.05);
+    --muted-foreground: #A1A1AA;
+    --accent: #3A3A4D; 
+    --accent-foreground: #EAEAEA;
+    --border: rgba(255, 255, 255, 0.1);
+    
+    --accent-blue: #2A3B4C;
+    --accent-sage: #3A4A3A;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
