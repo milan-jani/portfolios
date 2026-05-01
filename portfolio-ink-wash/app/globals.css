@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+}
+
+:root {
+  /* Ink Wash Light */
+  --background: #FFFFE3; /* Soft Ivory */
+  --foreground: #4A4A4A; /* Charcoal Black */
+  
+  --primary: #6D8196; /* Muted blue/gray */
+  --primary-foreground: #FFFFE3;
+
+  --secondary: #CBCBCB; /* Cool gray */
+  --secondary-foreground: #4A4A4A;
+
+  --muted: #EAEAce;
+  --muted-foreground: #6D8196;
+
+  --accent: #EAEAce;
+  --accent-foreground: #4A4A4A;
+
+  --border: #CBCBCB;
+}
+
+:root.dark {
+  /* Ink Wash Dark */
+  --background: #242424; /* Dark Charcoal */
+  --foreground: #FFFFE3; /* Soft Ivory */
+  
+  --primary: #6D8196; /* Muted blue/gray */
+  --primary-foreground: #FFFFE3;
+
+  --secondary: #4A4A4A; /* Charcoal */
+  --secondary-foreground: #FFFFE3;
+
+  --muted: #1A1A1A;
+  --muted-foreground: #CBCBCB;
+
+  --accent: #333333;
+  --accent-foreground: #FFFFE3;
+
+  --border: #4A4A4A;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Selection */
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}

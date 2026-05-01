@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  /* LIGHT MODE: Technical Whiteprint / Datasheet Layout */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --primary: #d97706; /* Copper Trace */
+  --primary-foreground: #ffffff;
+
+  --secondary: #e2e8f0; 
+  --secondary-foreground: #1e293b;
+
+  --muted: #cbd5e1;
+  --muted-foreground: #475569;
+
+  --accent: #0ea5e9; /* Cyber Cyan */
+  --accent-foreground: #f8fafc;
+
+  --border: #94a3b8;
+}
+
+:root.dark {
+  /* DARK MODE: PCB / Hardware / Cyberpunk */
+  --background: #050505; /* True Black */
+  --foreground: #e2e8f0;
+  
+  --primary: #ff6a00; /* Glowing Copper / Solder / Heat */
+  --primary-foreground: #050505;
+
+  --secondary: #121826; /* Dark Metallic */
+  --secondary-foreground: #e2e8f0;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #10b981; /* Glowing PCB Green */
+  --accent-foreground: #050505;
+
+  --border: #334155;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.bg-circuit-grid {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, color-mix(in srgb, var(--border) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 20%, transparent) 1px, transparent 1px);
+}
+
+/* Custom Selection */
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-left: 1px solid var(--border);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}

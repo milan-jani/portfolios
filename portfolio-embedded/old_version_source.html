@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>DJ | Embedded Systems Engineer Portfolio</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Animation library (GSAP for professional grade animations) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b6ec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101d22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(16, 29, 34, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(19, 182, 236, 0.1);
+        }
+        .circuit-bg {
+            background-image: radial-gradient(circle at 2px 2px, rgba(19, 182, 236, 0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(19, 182, 236, 0.3);
+        }
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        
+        /* Preloader Styles */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0d1519;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            color: #13b6ec;
+            transition: opacity 0.5s ease;
+        }
+        #terminal-output { padding: 20px; width: 80%; max-width: 600px; }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        
+        /* Hide scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #101d22; }
+        ::-webkit-scrollbar-thumb { background: #13b6ec; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 selection:bg-primary/30 min-h-screen">
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div id="terminal-output">
+            <span id="term-text"></span><span class="blink">_</span>
+        </div>
+    </div>
+
+    <!-- Scanline overlay effect -->
+    <div class="fixed inset-0 scanlines z-40 pointer-events-none opacity-30"></div>
+
+    <nav class="fixed top-0 w-full z-50 glass">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold tracking-tighter text-primary">「DJ」</span>
+            </div>
+            <div class="hidden md:flex items-center gap-10">
+                <a class="nav-link text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest" href="#work">Work</a>
+                <a class="nav-link text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest" href="#about">About</a>
+                <a class="nav-link text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest" href="#skills">Skills</a>
+                <a class="nav-link text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest" href="#contact">Contact</a>
+            </div>
+            <a href="#contact" class="bg-primary hover:bg-primary/90 text-background-dark px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded">
+                Initiate Link
+            </a>
+        </div>
+    </nav>
+
+    <main class="pt-20">
+        <!-- Hero Section -->
+        <section class="relative min-h-[90vh] flex items-center px-6 circuit-bg overflow-hidden">
+            <!-- Dynamic Canvas Background -->
+            <canvas id="circuitCanvas" class="absolute inset-0 z-0 opacity-40"></canvas>
+            
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] -z-10 animate-pulse-slow"></div>
+            
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                <div class="space-y-8 hero-content">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary">System Online. Awaiting Instructions.</span>
+                    </div>
+                    <div>
+                        <h1 class="text-6xl md:text-8xl font-bold leading-[0.9] tracking-tighter">
+                            I Engineer <br/>
+                            <span class="text-primary glitch-text" data-text="The Future">The Future</span>
+                        </h1>
+                        <p class="text-xl text-primary mt-4 font-mono typing-cursor min-h-[30px]" id="hero-typing-text"></p>
+                    </div>
+                    <p class="text-xl text-slate-400 max-w-lg font-light leading-relaxed">
+                        Crafting the bridge between silicon and soul. Senior Embedded Systems Developer specializing in real-time reliability and hardware optimization.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <a class="group bg-gradient-to-r from-primary to-cyan-400 text-background-dark px-8 py-4 font-bold rounded uppercase tracking-widest text-sm hover:opacity-90 transition-all flex items-center gap-2" href="#work">
+                            View Work <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </a>
+                        <a class="border border-primary/30 hover:border-primary text-primary px-8 py-4 font-bold rounded uppercase tracking-widest text-sm transition-all hover:bg-primary/5" href="#contact">
+                            Contact Me
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="hidden lg:block relative hero-visual">
+                    <div class="aspect-square w-full max-w-md mx-auto border border-primary/20 rounded-xl bg-primary/5 p-8 flex items-center justify-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(19,182,236,0.05)_50%,transparent_75%)] bg-[length:250%_250%] animate-[gradient_5s_linear_infinite]"></div>
+                        <span class="material-symbols-outlined text-[160px] text-primary/40 group-hover:scale-110 group-hover:text-primary/70 transition-all duration-500">memory</span>
+                        <div class="absolute bottom-4 left-4 right-4 h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary w-2/3 shadow-[0_0_10px_rgba(19,182,236,1)] animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="py-24 px-6 bg-slate-900/30" id="about">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div class="relative order-2 lg:order-1 gs-reveal-left">
+                    <div class="aspect-[4/5] w-full max-w-sm mx-auto relative group">
+                        <div class="absolute -inset-4 border border-primary/20 rounded-xl transition-all group-hover:-inset-2"></div>
+                        <div class="absolute -inset-4 border border-primary/10 rounded-xl rotate-3 group-hover:rotate-6 transition-all duration-500"></div>
+                        <div class="w-full h-full bg-slate-800 rounded-lg overflow-hidden grayscale contrast-125 hover:grayscale-0 transition-all duration-700 relative flex items-center justify-center">
+                             <span class="material-symbols-outlined text-8xl text-primary opacity-50">terminal</span>
+                             <!-- Replace with actual image later -->
+                            <div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+                        </div>
+                        <div class="absolute bottom-4 -right-4 bg-background-dark border border-primary p-4 rounded-lg shadow-xl neon-glow">
+                            <div class="text-xs uppercase text-primary font-bold">System Status</div>
+                            <div class="text-white font-mono text-sm mt-1 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Optimal
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6 order-1 lg:order-2 gs-reveal-right">
+                    <h2 class="text-sm font-bold text-primary uppercase tracking-[0.3em]">System Architecture</h2>
+                    <h3 class="text-4xl font-bold tracking-tight text-white">Precision in Every Microsecond</h3>
+                    <div class="space-y-4 text-slate-400 leading-relaxed text-lg">
+                        <p>With over 8 years in the field, I bridge the gap between high-level software precision and low-level hardware reliability. My approach is rooted in the philosophy that hardware is only as good as the instructions that breathe life into it.</p>
+                        <p>I specialize in developing firmware for safety-critical systems, optimizing RTOS performance, and designing complex PCBs that push the boundaries of miniaturization and efficiency.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 pt-6">
+                        <div class="border-l-2 border-primary/30 pl-4 hover:border-primary transition-colors cursor-default">
+                            <div class="text-3xl font-bold text-white counter" data-target="45">0</div>
+                            <div class="text-xs text-slate-500 uppercase tracking-widest mt-1">Deployments</div>
+                        </div>
+                        <div class="border-l-2 border-primary/30 pl-4 hover:border-primary transition-colors cursor-default">
+                            <div class="text-3xl font-bold text-white"><span class="counter" data-target="12">0</span>k+</div>
+                            <div class="text-xs text-slate-500 uppercase tracking-widest mt-1">Hours Code</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Dashboard -->
+        <section class="py-24 px-6" id="skills">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 gs-reveal-up">
+                    <div class="space-y-4">
+                        <h2 class="text-sm font-bold text-primary uppercase tracking-[0.3em]">Tech Stack</h2>
+                        <h3 class="text-4xl font-bold tracking-tight text-white">Engineering Dashboard</h3>
+                    </div>
+                    <p class="text-slate-500 max-w-xs text-sm font-mono border-l-2 border-primary/30 pl-3">
+                        > System diagnostic: All modules operational. Proficiency levels calibrated.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Dashboard Cards Generated via JS to apply animations easily -->
+                    <div id="skills-container" class="contents"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Grid -->
+        <section class="py-24 px-6 bg-slate-900/10" id="work">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-end mb-16 border-b border-primary/20 pb-4 gs-reveal-up">
+                    <div class="space-y-4">
+                        <h2 class="text-sm font-bold text-primary uppercase tracking-[0.3em]">Portfolio</h2>
+                        <h3 class="text-4xl font-bold tracking-tight text-white">Case Studies</h3>
+                    </div>
+                    <button id="add-project-btn" class="bg-primary/10 hover:bg-primary/20 border border-primary/50 text-primary px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">add</span> New Entry
+                    </button>
+                </div>
+                
+                <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Projects populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="py-24 px-6 relative overflow-hidden" id="contact">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+                    <div class="gs-reveal-left bg-slate-900/40 p-8 rounded-xl border border-primary/10">
+                        <h2 class="text-sm font-bold text-primary uppercase tracking-[0.3em] mb-4">Transmission</h2>
+                        <h3 class="text-3xl font-bold tracking-tight mb-8 text-white">Initiate Connection</h3>
+                        <form id="contactForm" class="space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Callsign</label>
+                                    <input required class="w-full bg-slate-900/50 border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary text-white rounded py-3 transition-colors" placeholder="Name" type="text"/>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Return Address</label>
+                                    <input required class="w-full bg-slate-900/50 border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary text-white rounded py-3 transition-colors" placeholder="email@server.com" type="email"/>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Payload</label>
+                                <textarea required class="w-full bg-slate-900/50 border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary text-white rounded py-3 transition-colors" placeholder="Transmission details..." rows="4"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-background-dark font-bold py-4 rounded uppercase tracking-widest hover:opacity-90 hover:neon-glow transition-all flex items-center justify-center gap-3">
+                                <span class="material-symbols-outlined text-sm">send</span> Send Message
+                            </button>
+                            <div id="form-msg" class="hidden text-center text-primary font-mono text-sm uppercase"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center py-2 gs-reveal-right">
+                        <div class="space-y-12">
+                            <div class="border-l-2 border-primary/30 pl-6">
+                                <h4 class="text-xs font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-2"><span class="material-symbols-outlined text-sm">location_on</span> Base Location</h4>
+                                <p class="text-2xl font-light text-slate-300">San Francisco, CA</p>
+                            </div>
+                            <div class="border-l-2 border-primary/30 pl-6">
+                                <h4 class="text-xs font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-2"><span class="material-symbols-outlined text-sm">mail</span> Secure Channel</h4>
+                                <p class="text-2xl font-light text-slate-300">dj@engineering.io</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 border-t border-slate-900 text-center text-slate-600 text-[10px] uppercase tracking-widest font-bold">
+        <div class="max-w-7xl mx-auto px-6">
+            © 2024 DJ Engineering. System Operating Normally.
+        </div>
+    </footer>
+
+    <!-- Add Project Modal -->
+    <div id="project-modal" class="modal">
+        <div class="bg-slate-900 border border-primary/30 p-8 rounded-xl max-w-lg w-full mx-4 shadow-2xl relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-slate-500 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="text-2xl font-bold text-white mb-6">Inject New Project Data</h3>
+            <form id="addProjectForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase text-slate-500 mb-1">Project Name</label>
+                    <input type="text" id="p-title" required class="w-full bg-slate-800 border-none rounded text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-slate-500 mb-1">Description</label>
+                    <textarea id="p-desc" required class="w-full bg-slate-800 border-none rounded text-white p-2" rows="2"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-slate-500 mb-1">Tech Stack (comma separated)</label>
+                    <input type="text" id="p-tech" required placeholder="C++, STM32, RTOS" class="w-full bg-slate-800 border-none rounded text-white p-2">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-slate-500 mb-1">Material Icon Name</label>
+                    <input type="text" id="p-icon" value="memory" class="w-full bg-slate-800 border-none rounded text-white p-2 text-sm text-slate-400">
+                </div>
+                <button type="submit" class="w-full bg-primary text-black font-bold py-3 uppercase rounded mt-4">Compile & Deploy</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT FOR FUNCTIONALITY -->
+    <script>
+        // --- 1. PRELOADER TERMINAL ---
+        const termText = "INITIALIZING BOOT SEQUENCE...\nLOADING FIRMWARE KERNEL...\nESTABLISHING SECURE CONNECTION...\nCALIBRATING SENSORS...\nSYSTEM READY.";
+        let termIndex = 0;
+        const el = document.getElementById("term-text");
+        
+        function typeTerminal() {
+            if (termIndex < termText.length) {
+                el.innerHTML = termText.substring(0, termIndex).replace(/\n/g, '<br/>');
+                termIndex++;
+                setTimeout(typeTerminal, 25);
+            } else {
+                setTimeout(() => {
+                    const preloader = document.getElementById('preloader');
+                    preloader.style.opacity = '0';
+                    setTimeout(() => preloader.style.display = 'none', 500);
+                    initAnimations();
+                }, 800);
+            }
+        }
+        window.onload = typeTerminal;
+
+        // --- 2. DATA ARRAYS ---
+        const skillsData = [
+            { category: 'Programming', icon: 'code', skills: [ {n: 'C / C++', v: 95}, {n: 'Rust', v: 75}, {n: 'Python', v: 85} ] },
+            { category: 'Embedded', icon: 'memory', skills: [ {n: 'RTOS', v: 90}, {n: 'ARM Cortex', v: 92}, {n: 'FPGA / HDL', v: 65} ] },
+            { category: 'Architecture', icon: 'architecture', skills: [ {n: 'Altium', v: 88}, {n: 'Schematics', v: 95}, {n: 'CI/CD', v: 80} ] },
+            { category: 'Hardware', icon: 'settings_input_component', skills: [ {n: 'PCB Design', v: 85}, {n: 'Sensor Fusion', v: 78}, {n: 'RF/BLE', v: 82} ] }
+        ];
+
+        let projectsData = [
+            { id: 1, title: 'Autonomous Drone Firmware', desc: 'Flight control system developed for custom hexacopter with sub-millisecond PID loop updates and sensor fusion.', tech: ['C++', 'STM32', 'FreeRTOS'], icon: 'flight_takeoff' },
+            { id: 2, title: 'BMS V3 Architecture', desc: 'High-voltage Battery Management System for electric propulsion, featuring active cell balancing and CAN-bus telemetry.', tech: ['Altium', 'CANOpen', 'ARM M4'], icon: 'electric_car' },
+            { id: 3, title: 'Wearable Bio-Monitor', desc: 'Ultra-low power medical wearable with BLE connectivity, achieving 30-day battery life on a single coin cell.', tech: ['nRF52', 'BLE 5.0', 'Rust'], icon: 'medical_services' },
+            { id: 4, title: 'Industrial IoT Gateway', desc: 'Secure Linux-based gateway for industrial sensor mesh, utilizing TPM for hardware-based cryptographic security.', tech: ['Yocto', 'TPM 2.0', 'MQTT'], icon: 'precision_manufacturing' }
+        ];
+
+        // --- 3. RENDER CONTENT ---
+        function renderSkills() {
+            const container = document.getElementById('skills-container');
+            container.innerHTML = skillsData.map(cat => `
+                <div class="gs-skill-card bg-slate-900/50 border border-primary/10 p-6 rounded-lg space-y-6 hover:border-primary/30 transition-colors">
+                    <div class="flex justify-between items-center pb-2 border-b border-white/5">
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">${cat.category}</span>
+                        <span class="material-symbols-outlined text-primary text-xl">${cat.icon}</span>
+                    </div>
+                    <div class="space-y-5">
+                        ${cat.skills.map(s => `
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-[10px] uppercase font-bold"><span class="text-slate-300">${s.n}</span><span class="text-primary">${s.v}%</span></div>
+                                <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary rounded-full neon-glow skill-bar" data-width="${s.v}%" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = projectsData.map(p => `
+                <div class="project-card group relative bg-slate-900/40 border border-primary/10 hover:border-primary/50 transition-all duration-300 rounded-xl p-8 cursor-pointer transform hover:-translate-y-2 shadow-lg hover:shadow-primary/20">
+                    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="size-14 rounded-lg bg-background-dark border border-primary/30 flex items-center justify-center text-primary group-hover:neon-glow transition-all">
+                            <span class="material-symbols-outlined text-3xl">${p.icon}</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <a class="text-slate-500 hover:text-white transition-colors" href="#"><span class="material-symbols-outlined">link</span></a>
+                            <a class="text-slate-500 hover:text-white transition-colors" href="#"><span class="material-symbols-outlined">code</span></a>
+                        </div>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3 text-white group-hover:text-primary transition-colors">${p.title}</h4>
+                    <p class="text-slate-400 mb-6 text-sm leading-relaxed">${p.desc}</p>
+                    <div class="flex flex-wrap gap-2 pt-2 border-t border-white/5 mt-auto">
+                        ${p.tech.map(t => `<span class="px-2 py-1 bg-slate-800/80 text-primary text-[10px] font-bold uppercase rounded border border-primary/20">${t}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        renderSkills();
+        renderProjects();
+
+        // --- 4. ANIMATIONS & DYNAMICS ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        function initAnimations() {
+            // Typing effect for Hero
+            const roles = ["Embedded Firmware", "Systems Architecture", "Low-Level Hardware", "IoT Solutions"];
+            let roleIdx = 0, charIdx = 0, isDeleting = false;
+            const typist = document.getElementById("hero-typing-text");
+            
+            function typeRole() {
+                const currentStr = "> executing: " + roles[roleIdx];
+                if(isDeleting) {
+                    typist.innerText = currentStr.substring(0, charIdx - 1);
+                    charIdx--;
+                } else {
+                    typist.innerText = currentStr.substring(0, charIdx + 1);
+                    charIdx++;
+                }
+
+                let speed = isDeleting ? 30 : 70;
+                if(!isDeleting && charIdx === currentStr.length) {
+                    speed = 2000; isDeleting = true;
+                } else if(isDeleting && charIdx === 13) {
+                    isDeleting = false; roleIdx = (roleIdx + 1) % roles.length; speed = 500;
+                }
+                setTimeout(typeRole, speed);
+            }
+            setTimeout(typeRole, 500);
+
+            // GSAP Scroll Reveals
+            gsap.from(".hero-content > *", { y: 30, opacity: 0, duration: 0.8, stagger: 0.2, ease: "power3.out" });
+            gsap.from(".hero-visual", { scale: 0.8, opacity: 0, duration: 1, delay: 0.5, ease: "back.out(1.7)" });
+
+            gsap.utils.toArray('.gs-reveal-up').forEach(elem => {
+                gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 80%" }, y: 40, opacity: 0, duration: 0.8 });
+            });
+            gsap.utils.toArray('.gs-reveal-left').forEach(elem => {
+                gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 80%" }, x: -50, opacity: 0, duration: 1 });
+            });
+            gsap.utils.toArray('.gs-reveal-right').forEach(elem => {
+                gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 80%" }, x: 50, opacity: 0, duration: 1 });
+            });
+            
+            // Staggered Skill Cards
+            gsap.from(".gs-skill-card", {
+                scrollTrigger: { trigger: "#skills-container", start: "top 75%" },
+                y: 30, opacity: 0, duration: 0.6, stagger: 0.15
+            });
+
+            // Animate Skill Bars Width
+            gsap.utils.toArray('.skill-bar').forEach(bar => {
+                ScrollTrigger.create({
+                    trigger: bar,
+                    start: "top 90%",
+                    onEnter: () => { bar.style.width = bar.getAttribute('data-width'); }
+                });
+            });
+
+            // Counter animation
+            gsap.utils.toArray('.counter').forEach(count => {
+                ScrollTrigger.create({
+                    trigger: count,
+                    start: "top 85%",
+                    onEnter: () => {
+                        gsap.to(count, {
+                            innerHTML: count.getAttribute('data-target'),
+                            duration: 2,
+                            snap: { innerHTML: 1 },
+                            ease: "power1.out"
+                        });
+                    }
+                });
+            });
+
+            // 3D Tilt on Project Cards
+            initTilt();
+        }
+
+        function initTilt() {
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.addEventListener("mousemove", function(e) {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const xPct = x / rect.width - 0.5;
+                    const yPct = y / rect.height - 0.5;
+                    card.style.transform = `perspective(1000px) rotateY(${xPct * 10}deg) rotateX(${-yPct * 10}deg) translateY(-5px)`;
+                });
+                card.addEventListener("mouseleave", function() {
+                    card.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0px)`;
+                });
+            });
+        }
+
+        // --- 5. BACKGROUND CANVAS ---
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+
+        function initCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = document.querySelector('.hero-content').parentElement.offsetHeight || window.innerHeight;
+            particles = [];
+            let count = window.innerWidth > 768 ? 60 : 30;
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5
+                });
+            }
+        }
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = 'rgba(19, 182, 236, 0.15)';
+            ctx.fillStyle = 'rgba(19, 182, 236, 0.5)';
+
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > width) p.vx *= -1;
+                if(p.y < 0 || p.y > height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j];
+                    let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if(dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        // Make drawing orthogonal (circuit like) instead of direct diagonal lines
+                        if(Math.random() > 0.5) {
+                            ctx.lineTo(p.x, p2.y); ctx.lineTo(p2.x, p2.y);
+                        } else {
+                            ctx.lineTo(p2.x, p.y); ctx.lineTo(p2.x, p2.y);
+                        }
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawCanvas);
+        }
+        drawCanvas();
+
+        // --- 6. ADD PROJECT MODAL ---
+        const modal = document.getElementById('project-modal');
+        document.getElementById('add-project-btn').addEventListener('click', () => { modal.classList.add('active'); });
+        document.getElementById('close-modal').addEventListener('click', () => { modal.classList.remove('active'); });
+        modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
+
+        document.getElementById('addProjectForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const techArr = document.getElementById('p-tech').value.split(',').map(t=>t.trim());
+            projectsData.push({
+                id: Date.now(),
+                title: document.getElementById('p-title').value,
+                desc: document.getElementById('p-desc').value,
+                tech: techArr,
+                icon: document.getElementById('p-icon').value || 'memory'
+            });
+            renderProjects();
+            initTilt(); // re-initialize hover effects for new cards
+            modal.classList.remove('active');
+            e.target.reset();
+        });
+
+        // Contact Form Fake
+        document.getElementById('contactForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('form-msg');
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> TRASMITTING...';
+            setTimeout(() => {
+                btn.innerHTML = '<span class="material-symbols-outlined">send</span> Send Message';
+                msg.innerHTML = '> TRANSMISSION SUCCESSFUL.';
+                msg.classList.remove('hidden');
+                e.target.reset();
+                setTimeout(() => msg.classList.add('hidden'), 4000);
+            }, 1500);
+        });
+
+    </script>
+</body>
+</html>
